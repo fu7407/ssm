@@ -6,4 +6,15 @@
    insert into T_USER_RED_PACKET(red_packet_id, user_id, amount,grab_time, note)
 		values (#{redPacketId} , #{userId} , #{amount} , now() , #{note})
   </insert>
+  
+   <insert id="batchGrapRedPacket"  useGeneratedKeys="true" keyProperty="id">
+            insert into T_USER_RED_PACKET(red_packet_id, user_id, amount,grab_time, note) values
+        <!-- 接收list参数，循环着组装sql语句，注意for循环的写法
+             separator=";" 代表着每次循环完，在sql后面放一个分号
+             item="cus" 循环List的每条的结果集
+             collection="list" list 即为 map传过来的参数key -->
+        <foreach collection="list" separator="," item="userRedPacket" >
+			(#{userRedPacket.redPacketId} , #{userRedPacket.userId} , #{userRedPacket.amount} , #{userRedPacket.grabTime} , #{userRedPacket.note})
+        </foreach>
+    </insert>
 </mapper>

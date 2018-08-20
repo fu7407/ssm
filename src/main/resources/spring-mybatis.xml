@@ -37,9 +37,23 @@
         <property name="poolPreparedStatements" value="false" />
         <property name="maxPoolPreparedStatementPerConnectionSize" value="20" />
 
-        <!-- 配置监控统计拦截的filters -->
+        <!-- 配置监控统计拦截的filters 
         <property name="filters" value="wall,stat" />
+        -->
+        <!-- 配置可以一次执行多条sql语句 -->
+        <property name="proxyFilters">
+			<list>
+				<ref bean="wall-filter"/>
+			</list>
+		</property>
     </bean>
+    
+    <bean id="wall-filter" class="com.alibaba.druid.wall.WallFilter">
+		<property name="config" ref="wall-config" />
+	</bean>
+	<bean id="wall-config" class="com.alibaba.druid.wall.WallConfig">
+		<property name="multiStatementAllow" value="true" />
+	</bean>
 	
 
 	 

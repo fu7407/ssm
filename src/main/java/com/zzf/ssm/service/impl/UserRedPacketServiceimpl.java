@@ -3,6 +3,7 @@ package com.zzf.ssm.service.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -12,7 +13,10 @@ import com.zzf.ssm.dao.IRedPacketDao;
 import com.zzf.ssm.dao.IUserRedPacketDao;
 import com.zzf.ssm.entitys.RedPacket;
 import com.zzf.ssm.entitys.UserRedPacket;
+import com.zzf.ssm.service.IRedisRedPacketService;
 import com.zzf.ssm.service.IUserRedPacketService;
+
+import redis.clients.jedis.Jedis;
 
 @Service
 public class UserRedPacketServiceimpl implements IUserRedPacketService {
@@ -171,6 +175,58 @@ public class UserRedPacketServiceimpl implements IUserRedPacketService {
 			}
 		}
 		return FAILED;
+	}
+
+	@Autowired
+	private RedisTemplate redisTemplate;
+
+	@Autowired
+	private IRedisRedPacketService redisRedPacketService;
+
+	// Lua 脚本
+	String script = "local listKey = 'red_packet_list＿' .. KEYS[1] \n" // 缓存抢红包列表信息列表key
+			+ "local redPacket = 'red_packet_' .. KEYS[1] \n "// 当前被抢红包 key
+			+ "local stock = tonumber(redis.call('hget', redPacket,'stock')) \n"// 获取当前红包库存
+			+ "if stock <= 0 then return 0 end \n " // 没有库存，返回为 0
+			+ "stock = stock-1 \n " // 库存减 1
+			+ "redis.call('hset', redPacket, 'stock', tostring(stock)) \n "// －保存当前库存
+			+ "redis.call('rpush', listKey , ARGV[1]) \n " // －往链表中加入当前红包信息
+			+ "if stock == 0 then return 2 end \n " // 如果是最后一个红包，则返回2表示抢红包已经结束，需要将列表中的数据保存到数据库中
+			+ "return 1 \n ";// 如果并非最后一个红包，则返回 l，表示抢红包成功
+
+	// 在缓存 Lua 脚本后，使用该变量保存 Redis 返回的 32 位的 SHAl 编码，使用它去执行缓存的Lua 脚本
+	String shal = null;
+
+	@Override
+	public Long grapRedPacketByRedis(Long redPacketid, Long userid) {
+		// 当前抢红包用户和日期信息
+		String args = userid + "-" + System.currentTimeMillis();
+		Long result = null;
+		// 获取底层 Redis 操作对象
+		Jedis jedis = (Jedis) redisTemplate.getConnectionFactory().getConnection().getNativeConnection();
+		try {
+			// 如果脚本没有加载过 ， 那么进行加载，这样就会返回一个 shal 编码
+			if (shal == null) {
+				shal = jedis.scriptLoad(script);
+			}
+			// 执行脚本，返回结果
+			result = (Long) jedis.evalsha(shal, 1, redPacketid + "", args);
+			// 返回 2 时为最后一个红包，此时将抢红包信息通过异步保存到数据库 中
+			if (result == 2) {
+				// 获取单个小红包金额
+				String unitAmountStr = jedis.hget("red_packet_" + redPacketid, "unit_amount");
+				// 触发保存数据库操作
+				Double unitAmount = Double.parseDouble(unitAmountStr);
+				logger.info("thread_ name=" + Thread.currentThread().getName());
+				redisRedPacketService.saveUserRedPacketByRedis(redPacketid, unitAmount);
+			}
+		} finally {
+			// 确保jedis顺利关闭
+			if (jedis != null && jedis.isConnected()) {
+				jedis.close();
+			}
+		}
+		return result;
 	}
 
 }

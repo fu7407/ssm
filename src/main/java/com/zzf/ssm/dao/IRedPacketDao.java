@@ -1,8 +1,11 @@
 package com.zzf.ssm.dao;
 
+import java.util.List;
+
 import org.springframework.stereotype.Repository;
 
 import com.zzf.ssm.entitys.RedPacket;
+import com.zzf.ssm.entitys.UserRedPacket;
 
 @Repository
 public interface IRedPacketDao {
@@ -34,5 +37,12 @@ public interface IRedPacketDao {
 	 * @return 更新记录条数
 	 */
 	public int decreaseRedPacketForVersion(Long id, Integer version);
+
+	/**
+	 * 批量扣减抢红包数
+	 * @param list 
+	 * @return 更新记录条数
+	 */
+	public int batchDecreaseRedPacket(List<UserRedPacket> list);
 
 }

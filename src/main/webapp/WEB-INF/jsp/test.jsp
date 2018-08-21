@@ -47,7 +47,6 @@
 		}
 	}
 	function grapRedPacketByRedis(){
-		alert(max);
 		for(var i=0;i<max;i++){
 			$.post({
 				url:"<%=request.getContextPath()%>/userRedPacket/grapRedPacketByRedis?redPacketId=6&userId="+i,
@@ -59,11 +58,11 @@
 </head>
 <body>
 	<h2> test</h2>
-	<button onclick="grapRedPacket()">grapRedPacket(普通方式，高并发有超发现象)</button>
-	<button onclick="grapRedPacketForUpdate()">grapRedPacketForUpdate(数据库锁表，悲观锁方式，性能下降，速度慢)</button>
-	<button onclick="grapRedPacketForVersion()">grapRedPacketForVersion(加版本号，乐观锁，时间跟普通方式差不多，存在大量失败请求)</button>
-	<button onclick="grapRedPacketForVersion2()">grapRedPacketForVersion2(加版本号，乐观锁重入机制，失败后重抢红包，用时间戳方式来判断退出)</button>
-	<button onclick="grapRedPacketForVersion3()">grapRedPacketForVersion3(加版本号，乐观锁重入机制，失败后重抢红包，设置重试次数来判断退出)</button>
+	<button onclick="grapRedPacket()">grapRedPacket(普通方式，高并发有超发现象)</button><br>
+	<button onclick="grapRedPacketForUpdate()">grapRedPacketForUpdate(数据库锁表，悲观锁方式，性能下降，速度慢)</button><br>
+	<button onclick="grapRedPacketForVersion()">grapRedPacketForVersion(加版本号，乐观锁，时间跟普通方式差不多，存在大量失败请求)</button><br>
+	<button onclick="grapRedPacketForVersion2()">grapRedPacketForVersion2(加版本号，乐观锁重入机制，失败后重抢红包，用时间戳方式来判断退出)</button><br>
+	<button onclick="grapRedPacketForVersion3()">grapRedPacketForVersion3(加版本号，乐观锁重入机制，失败后重抢红包，设置重试次数来判断退出)</button><br>
 	<button onclick="grapRedPacketByRedis()">grapRedPacketByRedis(先放入redis中，抢完再异步批量保存到数据库)</button>
 </body>
 </html>

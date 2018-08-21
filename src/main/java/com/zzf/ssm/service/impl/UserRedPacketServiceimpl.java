@@ -184,8 +184,8 @@ public class UserRedPacketServiceimpl implements IUserRedPacketService {
 	private IRedisRedPacketService redisRedPacketService;
 
 	// Lua 脚本
-	String script = "local listKey = 'red_packet_list＿' .. KEYS[1] \n" // 缓存抢红包列表信息列表key
-			+ "local redPacket = 'red_packet_' .. KEYS[1] \n "// 当前被抢红包 key
+	String script = "local listKey = 'red_packet_list＿'..KEYS[1] \n" // 缓存抢红包列表信息列表key
+			+ "local redPacket = 'red_packet_'..KEYS[1] \n "// 当前被抢红包 key
 			+ "local stock = tonumber(redis.call('hget', redPacket,'stock')) \n"// 获取当前红包库存
 			+ "if stock <= 0 then return 0 end \n " // 没有库存，返回为 0
 			+ "stock = stock-1 \n " // 库存减 1

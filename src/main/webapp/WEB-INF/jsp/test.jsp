@@ -5,7 +5,7 @@
 	<title>test page</title>
 <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.0.js"></script>
 <script type="text/javascript">
-	var max=30000;
+	var max=10000;
 	function grapRedPacket(){
 		for(var i=0;i<max;i++){
 			$.post({
@@ -54,6 +54,12 @@
 			});
 		}
 	}
+	function initRedis(){
+		$.post({
+			url:"<%=request.getContextPath()%>/userRedPacket/init?redPacketId=6",
+			success:function(result){}
+		});
+	}
 </script>
 </head>
 <body>
@@ -63,6 +69,6 @@
 	<button onclick="grapRedPacketForVersion()">grapRedPacketForVersion(加版本号，乐观锁，时间跟普通方式差不多，存在大量失败请求)</button><br>
 	<button onclick="grapRedPacketForVersion2()">grapRedPacketForVersion2(加版本号，乐观锁重入机制，失败后重抢红包，用时间戳方式来判断退出)</button><br>
 	<button onclick="grapRedPacketForVersion3()">grapRedPacketForVersion3(加版本号，乐观锁重入机制，失败后重抢红包，设置重试次数来判断退出)</button><br>
-	<button onclick="grapRedPacketByRedis()">grapRedPacketByRedis(先放入redis中，抢完再异步批量保存到数据库)</button>
+	<button onclick="grapRedPacketByRedis()">grapRedPacketByRedis(先放入redis中，抢完再异步批量保存到数据库)</button><button onclick="initRedis()">初始化redis缓存</button>
 </body>
 </html>

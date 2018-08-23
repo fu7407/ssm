@@ -84,7 +84,7 @@ public class UserRedPacketController {
 
 	/**
 	 * 需要先在redis上先执行如下命令(redPacketid用具体传进来的参数替换)：
-	 * hset red packet_redPacketid stock 20000
+	 * hset red packet_redPacketid stock 10000
 	 * hset red_packet_redPacketid unit_amount 10
 	 * @param redPacketid
 	 * @param userid
@@ -92,13 +92,18 @@ public class UserRedPacketController {
 	 */
 	@RequestMapping(value = "/grapRedPacketByRedis")
 	@ResponseBody
-	public Map<String, Object> grapRedPacketByRedis(Long redPacketid, Long userid) {
-		Long result = iUserRedPacketService.grapRedPacketByRedis(redPacketid, userid);
+	public Map<String, Object> grapRedPacketByRedis(Long redPacketId, Long userId) {
+		Long result = iUserRedPacketService.grapRedPacketByRedis(redPacketId, userId);
 		Map<String, Object> map = new HashMap<String, Object>();
 		boolean flag = result > 0;
 		map.put("success", flag);
 		map.put("message", flag ? "抢红包成功" : "抢红包失败");
 		return map;
+	}
+
+	@RequestMapping(value = "/init")
+	public void init(Long redPacketId) {
+		iUserRedPacketService.initRedis(redPacketId);
 	}
 
 }

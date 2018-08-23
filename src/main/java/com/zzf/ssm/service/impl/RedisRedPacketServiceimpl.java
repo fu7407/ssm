@@ -7,7 +7,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -25,6 +24,7 @@ public class RedisRedPacketServiceimpl implements IRedisRedPacketService {
 	// 每次取出 1000 条，避免一次取出消耗太多内存
 	private static final int TIME_SIZE = 1000;
 
+	@SuppressWarnings("rawtypes")
 	@Autowired
 	private RedisTemplate redisTemplate; // RedisTemplate
 
@@ -35,8 +35,8 @@ public class RedisRedPacketServiceimpl implements IRedisRedPacketService {
 	private IRedPacketDao iRedPacketDao;
 
 	// 开启新线程运行
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
-	@Async
 	public void saveUserRedPacketByRedis(Long redPacketid, Double unitAmount) {
 		System.out.println("开始保存数据");
 		Long start = System.currentTimeMillis();
@@ -58,17 +58,13 @@ public class RedisRedPacketServiceimpl implements IRedisRedPacketService {
 			// 保存红包信息
 			for (int j = 0; j < useridList.size(); j++) {
 				String args = useridList.get(j).toString();
-				String[] arr = args.split("一");
-				String useridStr = arr[0];
-				String timeStr = arr[1];
-				Long userid = Long.parseLong(useridStr);
-				Long time = Long.parseLong(timeStr);
+				String[] arr = args.split("_");
 				// 生成抢红包信息
 				UserRedPacket userRedPacket = new UserRedPacket();
 				userRedPacket.setRedPacketId(redPacketid);
-				userRedPacket.setUserId(userid);
+				userRedPacket.setUserId(Long.parseLong(arr[0]));
 				userRedPacket.setAmount(unitAmount);
-				userRedPacket.setGrabTime(new Timestamp(time));
+				userRedPacket.setGrabTime(new Timestamp(Long.parseLong(arr[1])));
 				userRedPacket.setNote("抢红包" + redPacketid);
 				userRedPacketList.add(userRedPacket);
 			}
@@ -78,7 +74,7 @@ public class RedisRedPacketServiceimpl implements IRedisRedPacketService {
 		// 删除 Redis 列表
 		redisTemplate.delete(PREFIX + redPacketid);
 		Long end = System.currentTimeMillis();
-		System.err.println("保存数据结束 ， 耗时 " + (end - start) + "毫秒，共 " + count + "条记录被保存。 ");
+		System.out.println("保存数据结束 ， 耗时 " + (end - start) + "毫秒，共 " + count + "条记录被保存。 ");
 	}
 
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED)

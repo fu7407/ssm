@@ -49,4 +49,12 @@ public interface IUserRedPacketService {
 	 * @return 0 －没有库存，失败   1 一成功，且不是最后一个红包   2 一成功，且是最后一个红包
 	 */
 	public Long grapRedPacketByRedis(Long redPacketid, Long userid);
+
+	/**
+	 * 初始化
+	 * hset red packet_redPacketid stock 10000
+	 * hset red_packet_redPacketid unit_amount 10
+	 * @param redPacketid
+	 */
+	public void initRedis(Long redPacketid);
 }
